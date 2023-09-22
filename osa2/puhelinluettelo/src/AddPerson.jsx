@@ -1,15 +1,18 @@
-import React from "react";
+import React, { useState } from "react";
 import { useEffect } from "react";
 import PhonebookService from "./PhonebookService";
+import './css/addPerson.css'
 
 function AddPerson({persons, setPersons, newName, setNewName, newNumber, setNewNumber, filterPersonInput}) {
+
+    const [successMessage, setSuccessMessage] = useState("Added " + newName)
+    const [personAdded, setPersonAdded] = useState(false)
+    const [cathcError, setCatchError] = useState("")
 
     let newObj = {
         name: "",
         number: ""
     }
-    
-    let personId = 0
 
     useEffect(() => {
         PhonebookService.getAll().then(persons => {
@@ -26,19 +29,26 @@ function AddPerson({persons, setPersons, newName, setNewName, newNumber, setNewN
         if (nameExists || phoneExists) {
           if(confirm(newName + " is already added to phonebook, replace the old number with a new one?")) {
 
-            PhonebookService.getId(newName).then(id => {
-            
-                newObj = {
-                    name: newName,
-                    number: newNumber
-                }
-    
-                PhonebookService.update(id, newObj).then(reponse => {
-                    PhonebookService.getAll().then(persons => {
-                        setPersons(persons)
-                    })
+            PhonebookService.getId(newName)
+                .then(id => {
+                    newObj = {
+                        name: newName,
+                        number: newNumber
+                    }
+                
+                    PhonebookService.update(id, newObj)
+                        .then(reponse => {
+                            PhonebookService.getAll()
+                                .then(persons => {
+                                    setPersons(persons)
+                                })
+                        })
+                        .catch(err => {
+                            if(err.response && err.response.status === 404) {
+                                setCatchError("Information of " + newName + " has already been removed from server")
+                            }
+                        })
                 })
-            })
 
           } else {
             alert(newName + " or " + newNumber + " is already added to phonebook")
@@ -57,6 +67,7 @@ function AddPerson({persons, setPersons, newName, setNewName, newNumber, setNewN
                     setPersons(persons)
                 })
             })
+            setPersonAdded(true)
 
         }
     }
@@ -83,6 +94,9 @@ function AddPerson({persons, setPersons, newName, setNewName, newNumber, setNewN
                 <button onClick={addPerson} type="submit">add</button>
             </div>
             </form>
+            <br/>
+            <h1 className="success">{personAdded ? successMessage : ""}</h1>
+            <h1 className="error">{cathcError}</h1>
         </div>
     )
 

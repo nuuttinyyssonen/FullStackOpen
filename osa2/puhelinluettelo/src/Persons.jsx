@@ -4,7 +4,6 @@ import PhonebookService from "./PhonebookService";
 function Persons({persons, setPersons, filterPersonInput}) {
 
     const deletePerson = (id, person) => {
-
         if(confirm("Delete " + person + " ?")) {
             PhonebookService.deleteRecord(id).then(response => {
                 PhonebookService.getAll().then(persons => {
